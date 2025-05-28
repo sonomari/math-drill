@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10までのたしざん - 算数クイズ</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .quiz-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .question {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .question:hover {
+            border-color: #4299e1;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .question-text {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2d3748;
+        }
+        
+        .answer-input {
+            width: 60px;
+            padding: 8px;
+            border: 2px solid #cbd5e0;
+            border-radius: 5px;
+            font-size: 1.1em;
+            text-align: center;
+            transition: border-color 0.3s ease;
+        }
+        
+        .answer-input:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+        
+        .correct {
+            background-color: #c6f6d5 !important;
+            border-color: #38a169 !important;
+        }
+        
+        .incorrect {
+            background-color: #fed7d7 !important;
+            border-color: #e53e3e !important;
+        }
+        
+        .buttons {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .reset-btn {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            box-shadow: 0 4px 15px rgba(237, 137, 54, 0.3);
+        }
+        
+        .reset-btn:hover {
+            box-shadow: 0 6px 20px rgba(237, 137, 54, 0.4);
+        }
+        
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            background: #edf2f7;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2em;
+            display: none;
+        }
+        
+        .score {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        
+        .excellent {
+            color: #38a169;
+        }
+        
+        .good {
+            color: #3182ce;
+        }
+        
+        .needs-practice {
+            color: #e53e3e;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e2e8f0;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78, #38a169);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>10までのたしざん</h1>
+        
+        <div class="quiz-grid" id="quizGrid">
+            <!-- Questions will be generated here -->
+        </div>
+        
+        <div class="buttons">
+            <button onclick="checkAnswers()">答え合わせ</button>
+            <button class="reset-btn" onclick="resetQuiz()">もう一度</button>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="score" id="scoreText"></div>
+            <div id="messageText"></div>
+        </div>
+    </div>
+
+    <script>
+        // 問題データ（画像から読み取った30問）
+        const questions = [
+            {num1: 7, num2: 1, answer: 8},
+            {num1: 4, num2: 1, answer: 5},
+            {num1: 1, num2: 3, answer: 4},
+            {num1: 4, num2: 6, answer: 10},
+            {num1: 6, num2: 4, answer: 10},
+            {num1: 1, num2: 8, answer: 9},
+            {num1: 5, num2: 4, answer: 9},
+            {num1: 2, num2: 5, answer: 7},
+            {num1: 5, num2: 2, answer: 7},
+            {num1: 1, num2: 4, answer: 5},
+            {num1: 3, num2: 1, answer: 4},
+            {num1: 1, num2: 5, answer: 6},
+            {num1: 7, num2: 2, answer: 9},
+            {num1: 2, num2: 7, answer: 9},
+            {num1: 3, num2: 5, answer: 8},
+            {num1: 8, num2: 2, answer: 10},
+            {num1: 2, num2: 8, answer: 10},
+            {num1: 3, num2: 4, answer: 7},
+            {num1: 7, num2: 3, answer: 10},
+            {num1: 1, num2: 6, answer: 7},
+            {num1: 4, num2: 5, answer: 9},
+            {num1: 5, num2: 5, answer: 10},
+            {num1: 8, num2: 1, answer: 9},
+            {num1: 3, num2: 7, answer: 10},
+            {num1: 2, num2: 1, answer: 3},
+            {num1: 6, num2: 2, answer: 8},
+            {num1: 3, num2: 2, answer: 5},
+            {num1: 5, num2: 1, answer: 6},
+            {num1: 2, num2: 2, answer: 4},
+            {num1: 3, num2: 6, answer: 9}
+        ];
+
+        // クイズを初期化
+        function initQuiz() {
+            const quizGrid = document.getElementById('quizGrid');
+            quizGrid.innerHTML = '';
+            
+            questions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question';
+                questionDiv.innerHTML = `
+                    <div class="question-text">(${index + 1}) ${q.num1} + ${q.num2} =</div>
+                    <input type="number" class="answer-input" id="answer${index}" min="0" max="20" placeholder="?">
+                `;
+                quizGrid.appendChild(questionDiv);
+            });
+            
+            // 結果を隠す
+            document.getElementById('results').style.display = 'none';
+        }
+
+        // 答え合わせ
+        function checkAnswers() {
+            let correctCount = 0;
+            const totalQuestions = questions.length;
+            
+            questions.forEach((q, index) => {
+                const input = document.getElementById(`answer${index}`);
+                const userAnswer = parseInt(input.value);
+                const questionDiv = input.parentElement;
+                
+                if (userAnswer === q.answer) {
+                    input.classList.remove('incorrect');
+                    input.classList.add('correct');
+                    questionDiv.style.backgroundColor = '#c6f6d5';
+                    correctCount++;
+                } else {
+                    input.classList.remove('correct');
+                    input.classList.add('incorrect');
+                    questionDiv.style.backgroundColor = '#fed7d7';
+                    // 正解を表示
+                    input.placeholder = `正解: ${q.answer}`;
+                }
+            });
+            
+            // 結果を表示
+            showResults(correctCount, totalQuestions);
+        }
+
+        // 結果表示
+        function showResults(correct, total) {
+            const resultsDiv = document.getElementById('results');
+            const scoreText = document.getElementById('scoreText');
+            const messageText = document.getElementById('messageText');
+            const progressFill = document.getElementById('progressFill');
+            
+            const percentage = Math.round((correct / total) * 100);
+            
+            scoreText.textContent = `${correct}/${total} 問正解！`;
+            progressFill.style.width = `${percentage}%`;
+            
+            if (percentage === 100) {
+                scoreText.className = 'score excellent';
+                messageText.textContent = '🎉 全問正解！すばらしいです！';
+            } else if (percentage >= 80) {
+                scoreText.className = 'score good';
+                messageText.textContent = '👏 よくできました！';
+            } else if (percentage >= 60) {
+                scoreText.className = 'score good';
+                messageText.textContent = '📚 もう少し練習してみましょう！';
+            } else {
+                scoreText.className = 'score needs-practice';
+                messageText.textContent = '💪 練習を続けて頑張りましょう！';
+            }
+            
+            resultsDiv.style.display = 'block';
+        }
+
+        // クイズをリセット
+        function resetQuiz() {
+            questions.forEach((q, index) => {
+                const input = document.getElementById(`answer${index}`);
+                const questionDiv = input.parentElement;
+                
+                input.value = '';
+                input.placeholder = '?';
+                input.classList.remove('correct', 'incorrect');
+                questionDiv.style.backgroundColor = '#f7fafc';
+            });
+            
+            document.getElementById('results').style.display = 'none';
+        }
+
+        // Enterキーで次の問題に移動
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const inputs = document.querySelectorAll('.answer-input');
+                const currentIndex = Array.from(inputs).findIndex(input => input === document.activeElement);
+                
+                if (currentIndex !== -1 && currentIndex < inputs.length - 1) {
+                    inputs[currentIndex + 1].focus();
+                } else if (currentIndex === inputs.length - 1) {
+                    checkAnswers();
+                }
+            }
+        });
+
+        // ページ読み込み時にクイズを初期化
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>
